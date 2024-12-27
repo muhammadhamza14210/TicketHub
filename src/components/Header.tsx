@@ -8,7 +8,7 @@ import SearchBar from "../components/Searchbar";
 
 const Header = () => {
   return (
-    <div className="border-b">
+    <div className="border-gray-300 shadow-sm bg-gradient-to-r from-gray-100 to-white">
       <div className="flex flex-col lg:flex-row items-center gap-4 p-4">
         <div className="flex items-center justify-between w-full lg:w-auto">
           <Link href="/" className="shrink-0 font-bold">
