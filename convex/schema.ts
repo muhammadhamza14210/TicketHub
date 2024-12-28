@@ -23,7 +23,7 @@ export default defineSchema({
       v.literal("refunded"),
       v.literal("cancelled")
     ),
-    paymentIntentId: v.optional(v.number()),
+    paymentIntentId: v.optional(v.string()),
     amount: v.optional(v.number())
   })
     .index("by_event", ["eventId"])
