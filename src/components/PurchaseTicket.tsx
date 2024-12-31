@@ -93,7 +93,7 @@ const PurchaseTicket = ({ eventId }: Props) => {
           {isLoading ? "Redirecting to Checkout" : "Purchase Your Ticket Now"}
         </Button>
         <div className="mt-4">
-          <ReleaseTicket eventId={eventId} key={eventId} />
+          <ReleaseTicket eventId = {eventId} waitingListId={queuePosition?._id}/>
         </div>
       </div>
     </div>
