@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { SignInButton, useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { useParams } from "next/navigation";
 import { api } from "../../../../convex/_generated/api";
@@ -10,6 +10,8 @@ import { ClipLoader } from "react-spinners";
 import Image from "next/image";
 import { CalendarDays, MapPin, Ticket, User } from "lucide-react";
 import EventCard from "@/components/EventCard";
+import { Button } from "@/components/ui/button";
+import JoinQueue from "@/components/JoinQueue";
 
 const EventPage = () => {
   const { user } = useUser();
@@ -107,6 +109,23 @@ const EventPage = () => {
               <div>
                 <div className="sticky top-8 space-y-4">
                   <EventCard eventId={params.id as Id<"events">} />
+
+                {user ? (
+                    <JoinQueue
+                        eventId={params.id as Id<"events">}
+                        userId={user.id}
+                    />
+                ) : (
+                    <SignInButton>
+                      <Button
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-800
+                      hover:from-blue-700 hover:to-blue-900 text-white font-medium
+                      py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                      >
+                        Sign in to Buy Tickets
+                      </Button>
+                    </SignInButton>
+                  )}
                 </div>
               </div>
             </div>
