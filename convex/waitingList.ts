@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { WAITING_LIST_STATUS } from "./constants";
 
 export const getQueuePosition = query({
@@ -56,6 +56,19 @@ export const releaseTicket = mutation({
       throw new Error("Invalid waiting list entry");
     }
 
+    await ctx.db.patch(waitingListId, {
+      status: WAITING_LIST_STATUS.EXPIRED
+    });
+  }
+});
+
+export const expireOffer = internalMutation({
+  args: { waitingListId: v.id("waitingList"), eventId: v.id("events") },
+  handler: async (ctx, { waitingListId, eventId }) => {
+    const offer = await ctx.db.get(waitingListId);
+    if (!offer || offer.status !== WAITING_LIST_STATUS.OFFERED) {
+      return
+    }
     await ctx.db.patch(waitingListId, {
       status: WAITING_LIST_STATUS.EXPIRED
     });
