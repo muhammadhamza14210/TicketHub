@@ -152,7 +152,7 @@ export const joinWaitingList = mutation({
         ? WAITING_LIST_STATUS.OFFERED
         : WAITING_LIST_STATUS.WAITING,
       message: available
-        ? `Ticket available, you have ${DURATIONS.TICKET_OFFER / (60 * 1000)} minutes to accept`
+        ? `Ticket available, you have ${(DURATIONS.TICKET_OFFER / (60*100))} minutes to accept`
         : "Ticket not available, you will be notified when it becomes available"
     };
   }

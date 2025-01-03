@@ -88,7 +88,7 @@ const JoinQueue = ({ eventId, userId }: Props) => {
                 </div>
               ) : availability.purchasedCount >= availability?.totalTickets ? (
                 <div className="text-center p-4">
-                  <p className="text-lg font-semibold text-red-600"></p>
+                  <p className="text-lg font-semibold text-red-600"> Sorry this event is sold out</p>
                 </div>
               ) : (
                 <Button
