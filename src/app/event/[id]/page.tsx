@@ -15,6 +15,7 @@ import JoinQueue from "@/components/JoinQueue";
 
 const EventPage = () => {
   const { user } = useUser();
+  console.log(user?.id);
   const params = useParams();
   const event = useQuery(api.events.getEventById, {
     eventId: params.id as Id<"events">
@@ -110,12 +111,12 @@ const EventPage = () => {
                 <div className="sticky top-8 space-y-4">
                   <EventCard eventId={params.id as Id<"events">} />
 
-                {user ? (
+                  {user ? (
                     <JoinQueue
-                        eventId={params.id as Id<"events">}
-                        userId={user.id}
+                      eventId={params.id as Id<"events">}
+                      userId={user.id}
                     />
-                ) : (
+                  ) : (
                     <SignInButton>
                       <Button
                         className="w-full bg-gradient-to-r from-blue-600 to-blue-800

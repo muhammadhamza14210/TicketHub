@@ -234,7 +234,7 @@ const EventCard = ({ eventId }: Props) => {
               {!isPastEvent && availability.activeOffers > 0 && (
                 <span className="text-amber-600 text-sm ml-2">
                   {availability.activeOffers}
-                  {availability.activeOffers === 1 ? "person" : "people"} trying
+                  {availability.activeOffers === 1 ? " person" : " people"} trying
                   to buy
                 </span>
               )}
