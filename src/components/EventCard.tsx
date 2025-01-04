@@ -176,11 +176,10 @@ const EventCard = ({ eventId }: Props) => {
         </div>
       )}
 
-      {/* Event Info */}
       <div className={`p-6 ${imageUrl ? "relative" : ""}`}>
-        <div className="flex flex-col justify-between items-start">
+        <div className="flex justify-between items-start">
           <div>
-            <div className="flex flex-col items-start gap-2">
+            <div className="flex flex-col items-start gap-2 mt-3">
               {isEventOwner && (
                 <span
                   className="inline-flex items-center gap-1 bg-blue-600/90 text-white px-2 
@@ -198,23 +197,24 @@ const EventCard = ({ eventId }: Props) => {
               </span>
             )}
           </div>
-        </div>
-        {/* Price tag */}
-        <div className="flex flex-col items-end gap-2 ml-4">
-          <span
-            className={`px-4 py-1.5 font-semibold rounded-full 
+
+          {/* Price tag */}
+          <div className="flex flex-col items-end gap-2 mt-2">
+            <span
+              className={`px-4 py-1.5 font-semibold rounded-full 
           ${isPastEvent ? "bg-red-50 text-red-500" : "bg-green-50 text-green-500"}`}
-          >
-            ${event.price.toFixed(2)}
-          </span>
-          {availability.purchasedCount >= availability.totalTickets && (
-            <span className="px-4 py-1.5 bg-red-50 text-red-700 font-semibold rounded-full text-sm">
-              Sold Out
+            >
+              ${event.price.toFixed(2)}
             </span>
-          )}
+            {availability.purchasedCount >= availability.totalTickets && (
+              <span className="px-4 py-1.5 bg-red-50 text-red-700 font-semibold rounded-full text-sm">
+                Sold Out
+              </span>
+            )}
+          </div>
         </div>
         {/* Event Details */}
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-3">
           <div className="flex items-center text-gray-600">
             <MapPin className="w-4 h-4 mr-2" />
             <span>{event.location}</span>
@@ -234,8 +234,8 @@ const EventCard = ({ eventId }: Props) => {
               {!isPastEvent && availability.activeOffers > 0 && (
                 <span className="text-amber-600 text-sm ml-2">
                   {availability.activeOffers}
-                  {availability.activeOffers === 1 ? " person" : " people"} trying
-                  to buy
+                  {availability.activeOffers === 1 ? " person" : " people"}{" "}
+                  trying to buy
                 </span>
               )}
             </span>
