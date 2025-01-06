@@ -10,9 +10,10 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { createStripeConnectLoginLink } from "../../actions/createStripeConnectLoginLink";
 import { ClipLoader } from "react-spinners";
-import { CalendarDays, Link, Plus } from "lucide-react";
+import { CalendarDays, Cog, Link, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { createStripeConnectCustomers } from "../../actions/createStripeConnectCustomer";
+import { createStripeConnectAccountLink } from "../../actions/createStripeConnectAccountLink";
 
 const SellerDashboard = () => {
   const [accountCreatePending, setAccountCreatePending] = useState(false);
@@ -27,39 +28,44 @@ const SellerDashboard = () => {
   const stripeConnectId = useQuery(api.users.getUserStripeConnectId, {
     userId: user?.id || ""
   });
-  const acceptPayments =
-    accountStatus?.isActive && accountStatus?.chargesEnabled;
+
+  const isReadyToAcceptPayments =
+    accountStatus?.isActive && accountStatus?.payoutsEnabled;
 
   useEffect(() => {
     if (stripeConnectId) {
-      fetchAccounStatus();
+      fetchAccountStatus();
     }
   }, [stripeConnectId]);
 
   if (stripeConnectId === undefined) {
-    <ClipLoader />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <ClipLoader />
+      </div>
+    );
   }
-
-  const fetchAccounStatus = async () => {
-    if (stripeConnectId) {
-      try {
-        const status = await getStripeConnectAccountStatus(stripeConnectId);
-        setAccountStatus(status);
-      } catch (error) {
-        console.log("Stripe Connect ID not found", error);
-      }
-    }
-  };
 
   const handleManageAccount = async () => {
     try {
       if (stripeConnectId && accountStatus?.isActive) {
         const loginUrl = await createStripeConnectLoginLink(stripeConnectId);
-        router.push(loginUrl);
+        window.location.href = loginUrl;
       }
     } catch (error) {
-      console.error("Error managing account:", error);
+      console.error("Error accessing Stripe Connect portal:", error);
       setError(true);
+    }
+  };
+
+  const fetchAccountStatus = async () => {
+    if (stripeConnectId) {
+      try {
+        const status = await getStripeConnectAccountStatus(stripeConnectId);
+        setAccountStatus(status);
+      } catch (error) {
+        console.error("Error fetching account status:", error);
+      }
     }
   };
 
@@ -68,39 +74,37 @@ const SellerDashboard = () => {
       <div className="bg-white rounded-lg shadow-lg overflow-hidden">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
-          <h1 className="text-2xl font-bold">Seller Dashboard</h1>
-          <p className="text-sm text-blue-200 mt-2">
-            Manage your seller profile and event settings
+          <h2 className="text-2xl font-bold">Seller Dashboard</h2>
+          <p className="text-blue-100 mt-2">
+            Manage your seller profile and payment settings
           </p>
         </div>
 
         {/* Main Content */}
-        {acceptPayments && (
+        {isReadyToAcceptPayments && (
           <>
             <div className="bg-white p-8 rounded-lg">
               <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                 Sell tickets for your events
               </h2>
-              <p className="text-sm text-gray-600 mb-8">
-                List your events and start selling tickets to your audience.
+              <p className="text-gray-600 mb-8">
+                List your tickets for sale and manage your listings
               </p>
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <div className="flex justify-center gap-4">
                   <Link
                     href="/seller/new-event"
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg
-                     hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     <Plus className="w-5 h-5" />
-                    Create New Event
+                    Create Event
                   </Link>
                   <Link
                     href="/seller/events"
-                    className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg
-                     hover:bg-gray-200 transition-colors"
+                    className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
                   >
                     <CalendarDays className="w-5 h-5" />
-                    View Events
+                    View My Events
                   </Link>
                 </div>
               </div>
@@ -109,18 +113,19 @@ const SellerDashboard = () => {
             <hr className="my-8" />
           </>
         )}
+
         <div className="p-6">
-          {/* Account Create Section */}
+          {/* Account Creation Section */}
           {!stripeConnectId && !accountCreatePending && (
             <div className="text-center py-8">
               <h3 className="text-xl font-semibold mb-4">
                 Start Accepting Payments
               </h3>
               <p className="text-gray-600 mb-6">
-                Connect your Stripe account to start accepting payments for your
-                events.
+                Create your seller account to start receiving payments securely
+                through Stripe
               </p>
-              <Button
+              <button
                 onClick={async () => {
                   setAccountCreatePending(true);
                   setError(false);
@@ -129,7 +134,7 @@ const SellerDashboard = () => {
                     setAccountCreatePending(false);
                   } catch (error) {
                     console.error(
-                      "Error creating Stripe Connect Customer:",
+                      "Error creating Stripe Connect customer:",
                       error
                     );
                     setError(true);
@@ -138,8 +143,8 @@ const SellerDashboard = () => {
                 }}
                 className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Create Seller Accounts
-              </Button>
+                Create Seller Account
+              </button>
             </div>
           )}
 
@@ -155,15 +160,19 @@ const SellerDashboard = () => {
                   </h3>
                   <div className="mt-2 flex items-center">
                     <div
-                      className={`w-3 h-3 rounded-full mr-2 ${accountStatus.isActive ? "bg-green-500" : "bg-yellow-500"}`}
+                      className={`w-3 h-3 rounded-full mr-2 ${
+                        accountStatus.isActive
+                          ? "bg-green-500"
+                          : "bg-yellow-500"
+                      }`}
                     />
                     <span className="text-lg font-semibold">
-                      {accountStatus.isActive ? "Active" : "Pending"}
+                      {accountStatus.isActive ? "Active" : "Pending Setup"}
                     </span>
                   </div>
                 </div>
 
-                {/* Payment Status Card */}
+                {/* Payments Status Card */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-medium text-gray-500">
                     Payment Capability
@@ -186,7 +195,9 @@ const SellerDashboard = () => {
                         />
                       </svg>
                       <span className="ml-2">
-                        {accountStatus.chargesEnabled ? "Enabled" : "Disabled"}
+                        {accountStatus.chargesEnabled
+                          ? "Can accept payments"
+                          : "Cannot accept payments yet"}
                       </span>
                     </div>
                     <div className="flex items-center">
@@ -207,13 +218,110 @@ const SellerDashboard = () => {
                       </svg>
                       <span className="ml-2">
                         {accountStatus.payoutsEnabled
-                          ? "Can recieve payouts"
+                          ? "Can receive payouts"
                           : "Cannot receive payouts yet"}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Requirements Section */}
+              {accountStatus.requiresInformation && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-yellow-800 mb-3">
+                    Required Information
+                  </h3>
+                  {accountStatus.requirements.currently_due.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-yellow-800 font-medium mb-2">
+                        Action Required:
+                      </p>
+                      <ul className="list-disc pl-5 text-yellow-700 text-sm">
+                        {accountStatus.requirements.currently_due.map((req) => (
+                          <li key={req}>{req.replace(/_/g, " ")}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {accountStatus.requirements.eventually_due.length > 0 && (
+                    <div>
+                      <p className="text-yellow-800 font-medium mb-2">
+                        Eventually Needed:
+                      </p>
+                      <ul className="list-disc pl-5 text-yellow-700 text-sm">
+                        {accountStatus.requirements.eventually_due.map(
+                          (req) => (
+                            <li key={req}>{req.replace(/_/g, " ")}</li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                  {/* Only show Add Information button if there are requirements */}
+                  {!accountLinkCreatePending && (
+                    <Button
+                      onClick={async () => {
+                        setAccountLinkCreatePending(true);
+                        setError(false);
+                        try {
+                          const { url } =
+                            await createStripeConnectAccountLink(stripeConnectId);
+                          router.push(url);
+                        } catch (error) {
+                          console.error(
+                            "Error creating Stripe Connect account link:",
+                            error
+                          );
+                          setError(true);
+                        }
+                        setAccountLinkCreatePending(false);
+                      }}
+                      className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+                    >
+                      Complete Requirements
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 mt-6">
+                {accountStatus.isActive && (
+                  <Button
+                    onClick={handleManageAccount}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  >
+                    <Cog className="w-4 h-4 mr-2" />
+                    Seller Dashboard
+                  </Button>
+                )}
+                <Button
+                  onClick={fetchAccountStatus}
+                  className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Refresh Status
+                </Button>
+              </div>
+
+              {error && (
+                <div className="mt-4 bg-red-50 text-red-600 p-3 rounded-lg">
+                  Unable to access Stripe dashboard. Please complete all
+                  requirements first.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Loading States */}
+          {accountCreatePending && (
+            <div className="text-center py-4 text-gray-600">
+              Creating your seller account...
+            </div>
+          )}
+          {accountLinkCreatePending && (
+            <div className="text-center py-4 text-gray-600">
+              Preparing account setup...
             </div>
           )}
         </div>

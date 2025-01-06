@@ -1,10 +1,10 @@
-"use server";
+'use server'
 
 import { stripe } from "@/lib/stripe";
 
-export async function createStripeConnectLoginLink(stripeConnectId: string) {
+export async function createStripeConnectLoginLink(stripeConnectId: string){
   if (!stripeConnectId) {
-    throw new Error("Missing stripeConnectId");
+    throw new Error("No Stripe account ID provided");
   }
 
   try {
@@ -12,6 +12,6 @@ export async function createStripeConnectLoginLink(stripeConnectId: string) {
     return loginLink.url;
   } catch (error) {
     console.error("Error creating Stripe Connect login link:", error);
-    throw new Error("Error creating Stripe Connect login link:");
+    throw new Error("Failed to create Stripe Connect login link");
   }
 }

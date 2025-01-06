@@ -3,7 +3,7 @@
 import { stripe } from "@/lib/stripe";
 import { headers } from "next/headers";
 
-export async function createStripeConnectAccountLinktsts(account: string) {
+export async function createStripeConnectAccountLink(account: string) {
   try {
     const headerList = await headers();
     const origin = headerList.get("origin") || "";
