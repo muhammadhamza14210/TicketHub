@@ -10,10 +10,11 @@ import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { createStripeConnectLoginLink } from "../../actions/createStripeConnectLoginLink";
 import { ClipLoader } from "react-spinners";
-import { CalendarDays, Cog, Link, Plus } from "lucide-react";
+import { CalendarDays, Cog, Plus } from "lucide-react";
 import { Button } from "./ui/button";
 import { createStripeConnectCustomers } from "../../actions/createStripeConnectCustomer";
 import { createStripeConnectAccountLink } from "../../actions/createStripeConnectAccountLink";
+import Link from "next/link";
 
 const SellerDashboard = () => {
   const [accountCreatePending, setAccountCreatePending] = useState(false);
@@ -23,6 +24,7 @@ const SellerDashboard = () => {
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(
     null
   );
+  
   const router = useRouter();
   const { user } = useUser();
   const stripeConnectId = useQuery(api.users.getUserStripeConnectId, {
@@ -266,7 +268,9 @@ const SellerDashboard = () => {
                         setError(false);
                         try {
                           const { url } =
-                            await createStripeConnectAccountLink(stripeConnectId);
+                            await createStripeConnectAccountLink(
+                              stripeConnectId
+                            );
                           router.push(url);
                         } catch (error) {
                           console.error(
