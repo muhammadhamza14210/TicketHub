@@ -3,6 +3,78 @@ import { mutation, query } from "./_generated/server";
 import { DURATIONS, TICKET_STATUS, WAITING_LIST_STATUS } from "./constants";
 import { internal } from "./_generated/api";
 
+export const createEvent = mutation({
+  args: {
+    name: v.string(),
+    description: v.string(),
+    location: v.string(),
+    eventDate: v.number(),
+    price: v.number(),
+    totalTickets: v.number(),
+    userId: v.string()
+  },
+  handler: async (
+    ctx,
+    { name, description, location, eventDate, price, totalTickets, userId }
+  ) => {
+    const event = await ctx.db.insert("events", {
+      name,
+      description,
+      location,
+      eventDate,
+      price,
+      totalTickets,
+      userId
+    });
+    return event;
+  }
+});
+
+export const updateEvent = mutation({
+  args: {
+    eventId: v.id("events"),
+    name: v.string(),
+    description: v.string(),
+    location: v.string(),
+    eventDate: v.number(),
+    price: v.number(),
+    totalTickets: v.number()
+  },
+  handler: async (
+    ctx,
+    { eventId, name, description, location, eventDate, price, totalTickets }
+  ) => {
+    const event = await ctx.db.get(eventId);
+    if (!event) {
+      throw new Error("Event not found");
+    }
+
+    const soldTickets = await ctx.db
+      .query("tickets")
+      .withIndex("by_event", (q) => q.eq("eventId", eventId))
+      .filter((q) =>
+        q.or(q.eq(q.field("status"), "valid"), q.eq(q.field("status"), "used"))
+      )
+      .collect();
+
+    if (totalTickets < soldTickets.length) {
+      throw new Error(
+        `Cannot reduce total tickets below ${soldTickets.length} sold tickets`
+      );
+    }
+
+    await ctx.db.patch(eventId, {
+      name,
+      description,
+      location,
+      eventDate,
+      price,
+      totalTickets
+    });
+    return eventId;
+  }
+});
+
 export const getEvents = query({
   args: {},
   handler: async (ctx) => {
@@ -152,7 +224,7 @@ export const joinWaitingList = mutation({
         ? WAITING_LIST_STATUS.OFFERED
         : WAITING_LIST_STATUS.WAITING,
       message: available
-        ? `Ticket available, you have ${(DURATIONS.TICKET_OFFER / (60*100))} minutes to accept`
+        ? `Ticket available, you have ${DURATIONS.TICKET_OFFER / (60 * 100)} minutes to accept`
         : "Ticket not available, you will be notified when it becomes available"
     };
   }
