@@ -89,8 +89,12 @@ const EventForm = ({ mode, initialData }: EventFormProps) => {
           imageStorageId = await handleImageUploadUrl(selectedImage);
         }
         if (mode === "edit" && initialData?.imageStorageId) {
-          await deleteImage({ storageId: initialData.imageStorageId });
-        }
+            if (removedCurrentImage || selectedImage) {
+              await deleteImage({
+                storageId: initialData.imageStorageId,
+              });
+            }
+          }
 
         if (mode === "create") {
           const eventId = await createEvent({
@@ -293,7 +297,7 @@ const EventForm = ({ mode, initialData }: EventFormProps) => {
               </FormItem>
             )}
           />
-          
+
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               Event Image
