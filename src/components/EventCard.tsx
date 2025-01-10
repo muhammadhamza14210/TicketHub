@@ -164,7 +164,7 @@ const EventCard = ({ eventId }: Props) => {
     >
       {/* Image URL */}
       {imageUrl && (
-        <div className="relative w-full">
+        <div className="relative w-full h-48">
           <Image
             src={imageUrl}
             alt={event.name}
@@ -172,7 +172,7 @@ const EventCard = ({ eventId }: Props) => {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
       )}
 

@@ -19,6 +19,9 @@ import {
   FormMessage
 } from "./ui/form";
 import { Input } from "./ui/input";
+import Image from "next/image";
+import { Button } from "./ui/button";
+import { ClipLoader } from "react-spinners";
 
 const formScheme = z.object({
   name: z.string().min(1, "Event name is required"),
@@ -39,7 +42,7 @@ interface InitialEventData {
   eventDate: number;
   price: number;
   totalTickets: number;
-  imageStorageUrl?: Id<"_storage">;
+  imageStorageId?: Id<"_storage">;
 }
 
 interface EventFormProps {
@@ -53,7 +56,7 @@ const EventForm = ({ mode, initialData }: EventFormProps) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const currentImageUrl = getStoreUrl(initialData?.imageStorageUrl);
+  const currentImageUrl = getStoreUrl(initialData?.imageStorageId);
 
   //Image Upload
   const imageInput = useRef<HTMLInputElement>(null);
@@ -76,7 +79,72 @@ const EventForm = ({ mode, initialData }: EventFormProps) => {
     }
   });
 
-  const onSubmit = async (data: FormData) => {};
+  const onSubmit = async (data: FormData) => {
+    if (!user?.id) return;
+
+    startTransition(async () => {
+      try {
+        let imageStorageId = null;
+        if (selectedImage) {
+          imageStorageId = await handleImageUploadUrl(selectedImage);
+        }
+        if (mode === "edit" && initialData?.imageStorageId) {
+          await deleteImage({ storageId: initialData.imageStorageId });
+        }
+
+        if (mode === "create") {
+          const eventId = await createEvent({
+            ...data,
+            userId: user.id,
+            eventDate: data.eventDate.getTime()
+          });
+
+          if (imageStorageId) {
+            await updateEventImage({
+              eventId,
+              storageId: imageStorageId as Id<"_storage">
+            });
+          }
+
+          router.push(`/event/${eventId}`);
+        } else {
+          if (!initialData) {
+            throw new Error("Initial event data not provided");
+          }
+
+          //Update event
+          await updateEvent({
+            eventId: initialData._id,
+            ...data,
+            eventDate: data.eventDate.getTime()
+          });
+
+          //Update event image if necessary
+          if (imageStorageId || removedCurrentImage) {
+            await updateEventImage({
+              eventId: initialData._id,
+              storageId: imageStorageId
+                ? (imageStorageId as Id<"_storage">)
+                : null
+            });
+          }
+          toast({
+            title: "Event updated",
+            description: "Your event has been updated successfully"
+          });
+          router.push(`/event/${initialData._id}`);
+        }
+      } catch (error) {
+        console.error("Error updating event:", error);
+        toast({
+          variant: "destructive",
+          title: "Error creating event",
+          description:
+            "There was an error creating your event. Please try again."
+        });
+      }
+    });
+  };
 
   async function handleImageUploadUrl(file: File): Promise<string | null> {
     try {
@@ -207,7 +275,85 @@ const EventForm = ({ mode, initialData }: EventFormProps) => {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="totalTickets"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price Per Ticket</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Event Image
+            </label>
+            <div className="mt-1 flex items-center gap-4">
+              {imagePreview || (!removedCurrentImage && currentImageUrl) ? (
+                <div className="relative w-32 aspect-square bg-gray-100 rounded-lg">
+                  <Image
+                    src={imagePreview || currentImageUrl!}
+                    alt="Preview"
+                    fill
+                    className="object-contain rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setSelectedImage(null);
+                      setImagePreview(null);
+                      setRemovedCurrentImage(true);
+                      if (imageInput.current) {
+                        imageInput.current.value = "";
+                      }
+                    }}
+                    className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full w-6 h-6 flex 
+                    items-center justify-center hover:bg-red-600 transition-colors"
+                  >
+                    x
+                  </Button>
+                </div>
+              ) : (
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  ref={imageInput}
+                  className="block w-full text-sm text-gray-500 file:mr-4
+                  file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm
+                  file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                />
+              )}
+            </div>
+          </div>
         </div>
+        <Button
+          type="submit"
+          disabled={isPending}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 
+          hover:to-blue-900 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 
+          shadow-md flex items-center justify-center gap-2"
+        >
+          {isPending ? (
+            <>
+              <ClipLoader className="w-4 h-4 animate-spin" />
+            </>
+          ) : mode === "create" ? (
+            "Create Event"
+          ) : (
+            "Update Event"
+          )}
+        </Button>
       </form>
     </Form>
   );
