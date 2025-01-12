@@ -8,6 +8,7 @@ import { api } from "../../convex/_generated/api";
 import { Ticket } from "lucide-react";
 import { Button } from "./ui/button";
 import ReleaseTicket from "./ReleaseTicket";
+import { createStripeCheckoutSessions } from "../../actions/createStripeCheckoutSession";
 
 type Props = {
   eventId: Id<"events">;
@@ -50,12 +51,22 @@ const PurchaseTicket = ({ eventId }: Props) => {
     return () => clearInterval(timer);
   }, [offerExpires, isExpired]);
 
-  {
-    /* Stripe checkout */
-  }
+  /* Stripe checkout */
   const handlePurchase = async () => {
     if (!user || !queuePosition || queuePosition.status !== "offered")
       return null;
+    try {
+      setisLoading(true);
+      const { sessionUrl } = await createStripeCheckoutSessions({
+        eventId,
+      });
+      router.push(sessionUrl!);
+    } catch (error) {
+      console.error("Error creating Stripe checkout session:", error);
+      // Show an error message to the user
+    } finally {
+      setisLoading(false);
+    }
   };
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-amber-200">
@@ -93,7 +104,7 @@ const PurchaseTicket = ({ eventId }: Props) => {
           {isLoading ? "Redirecting to Checkout" : "Purchase Your Ticket Now"}
         </Button>
         <div className="mt-4">
-          <ReleaseTicket eventId = {eventId} waitingListId={queuePosition?._id}/>
+          <ReleaseTicket eventId={eventId} waitingListId={queuePosition?._id} />
         </div>
       </div>
     </div>

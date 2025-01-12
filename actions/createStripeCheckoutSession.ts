@@ -16,7 +16,7 @@ export type StripeCheckoutMetaData = {
 
 export async function createStripeCheckoutSessions({
   eventId
-}: StripeCheckoutMetaData) {
+}: { eventId: Id<"events"> }) {
   const { userId } = await auth();
   if (!userId) {
     throw new Error("Unauthorized user.");
